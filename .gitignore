@@ -2,6 +2,7 @@
 !.gitignore
 !*/
 !*.cpp
+!*.hpp
 !*.otf
 !*.jpeg
 !Makefile
