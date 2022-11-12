@@ -3,15 +3,17 @@
 #include <cmath>
 #include <vector>
 
-#include "model/entity.cpp"
-#include "etc/utils.cpp"
-#include "etc/statics.cpp"
+#include "etc/entity.hpp"
+#include "etc/utils.hpp"
 
 int main(int argc, char const *argv[])
 {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     settings.sRgbCapable = false;
+
+    //! constants are defined here
+    const float movementMultiplier { 0.1f };
 
     bool error { false };
 
@@ -23,19 +25,18 @@ int main(int argc, char const *argv[])
     window.setPosition ( sf::Vector2i ( 0, 0 ) );
     window.setFramerateLimit ( 72 );
 
-    sf::Color prev = sf::Color::Black, bgColor = sf::Color::Black;
+    sf::Color bgColor { sf::Color::Black };
 
     //! sprites and assets get declared here
     //! remember the format error = something.loadFromFile (...)
-    sf::Event::JoystickMoveEvent mevt{};
-
     std::vector<sf::Drawable*> entities{};
 
-    //! entities get declared here
-    const sf::Vector2<float> centerpoint (100, 100);
+    sf::Event::JoystickMoveEvent mevt{};
 
-    Player p(100, 100, 1000, 50);
-    Player q(300, 100, 1000, 50);
+    //! entities get declared here
+    const sf::Vector2<float> windowCenter (400.0f, 300.0f);
+
+    Player p(windowCenter);
 
     sf::CircleShape p_circle;
     p_circle.setFillColor ( sf::Color::Blue );
@@ -43,34 +44,10 @@ int main(int argc, char const *argv[])
     p_circle.setPosition ( p.getPos() );
     entities.push_back ( &p_circle );
 
-    sf::CircleShape q_circle;
-    q_circle.setFillColor ( sf::Color(0xff, 0x8f, 0x00, 0xff) );
-    q_circle.setRadius ( 20.0f );
-    q_circle.setPosition ( q.getPos() );
-    entities.push_back ( &q_circle );
-
-    sf::CircleShape mirror;
-    mirror.setOrigin ( 0.0f, 0.0f );
-    mirror.setFillColor (sf::Color::Transparent );
-    mirror.setOutlineColor ( sf::Color::Green );
-    mirror.setOutlineThickness ( 1.5f );
-    mirror.setPosition ( p.getPos() );
-    mirror.setRadius ( 20.0f );
-    entities.push_back ( &mirror );
-
-    sf::CircleShape second;
-    second.setOrigin ( 0.0f, 0.0f );
-    second.setFillColor (sf::Color::Transparent );
-    second.setOutlineColor ( sf::Color::Cyan );
-    second.setOutlineThickness ( 1.5f );
-    second.setPosition ( q.getPos() );
-    second.setRadius ( 20.0f );
-    entities.push_back ( &second );
-
     sf::Uint64 frames { 0 };
     sf::Clock time{};
 
-    if ( error ) { bgColor = sf::Color(0x0f0f0fff); }
+    if ( error ) { bgColor = sf::Color::Red; }
 
     sf::Event event{};
 
@@ -83,17 +60,6 @@ int main(int argc, char const *argv[])
                 window.close();
             }
 
-            if ( event.type == sf::Event::JoystickConnected )
-            {
-                prev = bgColor;
-                bgColor = sf::Color(0x30, 0x30, 0x30, 0xff);
-            }
-
-            if ( event.type == sf::Event::JoystickDisconnected )
-            {
-                bgColor = prev;
-            }
-
             if ( event.type == sf::Event::JoystickMoved )
             {
                 mevt = event.joystickMove;
@@ -103,27 +69,12 @@ int main(int argc, char const *argv[])
         frames += 1;
 
         //! code gets inserted here
-        sf::Vector2<float> posa{};
-        sf::Vector2<float> posb{};
-        if (sf::Joystick::isConnected (0)) 
-        {
-            posa.x = centerpoint.x          + sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::X ) * 0.2f;
-            posa.y = centerpoint.y          + sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::Y ) * 0.2f;
-            posb.x = centerpoint.x + 200.0f + sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::U ) * 0.2f;
-            posb.y = centerpoint.y          + sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::V ) * 0.2f;
-        } 
-        else 
-        {
-            float rad = getRadians ( time.getElapsedTime().asSeconds() * 90.0f );
-            posa.x = centerpoint.x          + std::cos(rad) * 20.0f;
-            posa.y = centerpoint.y          + std::sin(rad) * 20.0f;
-            posb.x = centerpoint.x + 200.0f + std::cos(-rad + M_PI ) * 20.0f; // synchronized but inverted rotation
-            posb.y = centerpoint.y          + std::sin(-rad + M_PI ) * 20.0f;
-        }
+        sf::Vector2<float> posa{p.getPos()};
+        posa.x += sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::X ) * movementMultiplier;
+        posa.y += sf::Joystick::getAxisPosition ( 0, sf::Joystick::Axis::Y ) * movementMultiplier;
+        adjust ( posa.x, posa.y, window, p_circle.getRadius() ); //modifies arguments
         p.setPos ( posa );
-        p_circle.setPosition (posa);
-        q.setPos ( posb );
-        q_circle.setPosition (posb);
+        p_circle.setPosition ( posa );
 
         window.clear ( bgColor );
 
