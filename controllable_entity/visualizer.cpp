@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     window.create ( 
         sf::VideoMode ( 800, 600, 32U ), 
         "Placeholder", 
-        sf::Style::Close | sf::Style::Titlebar | sf::Style::Resize );
+        sf::Style::Close | sf::Style::Titlebar );
     window.setPosition ( sf::Vector2i ( 0, 0 ) );
     window.setFramerateLimit ( 72 );
 
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
     //! entities get declared here
     const sf::Vector2<float> windowCenter (400.0f, 300.0f);
 
-    Player p(windowCenter);
+    Player p(windowCenter, 1000, 50);
 
     sf::CircleShape p_circle;
     p_circle.setFillColor ( sf::Color::Blue );

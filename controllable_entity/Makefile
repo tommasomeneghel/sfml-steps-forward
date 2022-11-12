@@ -5,17 +5,19 @@ CXXFLAGS := -Os -Wall -Wpedantic -Werror
 
 DEFAULT_FILE := int main() { return -1; }
 
-visualizer: visualizer.o
+objs := model/entity.o funcs/utils.o visualizer.o
+
+visualizer: $(objs)
 	${CXX} $^ -o $@ ${SFML_FLAGS}
+
+$(objs): %.o: %.cpp
+	${CXX} $^ -c -o $@
 
 visualizer.cpp:
 	echo '${DEFAULT_FILE}' > visualizer.cpp
 
-list: $(wildcard *.cpp)
-	echo $?
-
 run: visualizer
 	./$?
 
-clean_all:
-	rm visualizer visualizer.o
+clean:
+	rm -f **/*.o visualizer.o visualizer

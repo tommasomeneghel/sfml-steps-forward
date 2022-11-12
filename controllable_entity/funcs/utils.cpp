@@ -1,3 +1,7 @@
+#include <cmath>
+#include <SFML/Graphics.hpp>
+
+#include "../etc/utils.hpp"
 
 inline double getRadians ( const double deg )
 {
